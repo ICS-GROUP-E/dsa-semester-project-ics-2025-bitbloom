@@ -141,7 +141,7 @@ class ListManager:
 
 #Create method----------------------------------------------------------------------------------------------------------------------
 def create_medicine():
-     global new_medicines
+    global new_medicines
     new_medicines = ListManager()
     name = entries["Name"].get()
     qty = entries["Quantity"].get()
@@ -173,7 +173,7 @@ def create_medicine():
         
         end = time.perf_counter()
         log_operation("List", "POP", start, end)
-            except Exception as e:
+    except Exception as e:
 
         messagebox.showerror("Database Error", str(e))
 
@@ -317,7 +317,7 @@ def delete_medicine():
     try:
         conn = connect_db()
         cursor= conn.cursor()
-               cursor.execute("SELECT * FROM meddata WHERE Name = %s", (name,))
+        cursor.execute("SELECT * FROM meddata WHERE Name = %s", (name,))
         record = cursor.fetchone()
 
         if not record:
@@ -340,10 +340,7 @@ def delete_medicine():
         start = time.perf_counter()
         end = time.perf_counter()
         log_operation("Stacks", "POP", start, end)
-        if not record:
-            messagebox.showerror("Not Found", f"No medicine found with name '{name}'.")
-            delete_entry.delete(0, tk.END)
-            return
+        
         load_data_into_table()
         reset_fields()
         
