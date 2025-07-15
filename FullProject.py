@@ -6,6 +6,13 @@ from reportlab.pdfgen import canvas
 from datetime import datetime
 import time
 
+structure_details = {
+    "List": {"operations": 0, "total_time": 0.0, "last_operation": ""},
+    "Dictionary": {"operations": 0, "total_time": 0.0, "last_operation": ""},
+    "LinkedList": {"operations": 0, "total_time": 0.0, "last_operation": ""},
+    "Stacks": {"operations": 0, "total_time": 0.0, "last_operation": ""}
+}
+
 def log_operation(structure_name, operation_name, start_time, end_time):
     elapsed = end_time - start_time
     struct = structure_details[structure_name]
@@ -22,6 +29,8 @@ structure_usage = {
     "LinkedList": 0,
     "Stacks": 0
 }
+
+
 # Report method------------------------------------------------------------------------------------------------------------
 def generate_pdf_report():
     try:
@@ -86,9 +95,15 @@ def connect_db():
         database="medicines"
     )
     # Function to reset fields-----------------------------------------------------------------------------------------------------------------------
+
+
+
+
 def reset_fields():
     for entry in entries.values():
         entry.delete(0, tk.END)
+
+
 # Function to load data-----------------------------------------------------------------------------------------------------------------------
 def load_data_into_table():
     try:
@@ -109,10 +124,9 @@ def load_data_into_table():
 # ---------------------------------------------------------------------------------------------------------        
         
 
-
 #Cate's part-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class ListManager:
-    def _init_(self):
+    def __init__(self):
         self.data = []
 
     def insert(self, item):
@@ -121,9 +135,14 @@ class ListManager:
     def get_all(self):
         return self.data
 
+
  new_medicines=ListManager()
+
+
 #Create method----------------------------------------------------------------------------------------------------------------------
 def create_medicine():
+     global new_medicines
+    new_medicines = ListManager()
     name = entries["Name"].get()
     qty = entries["Quantity"].get()
     price = entries["Price"].get()
@@ -138,7 +157,6 @@ def create_medicine():
     new_medicines.insert(expiry)
     values= new_medicines.get_all()
     try:
-
         conn = connect_db()
         cursor = conn.cursor()
         sql="INSERT INTO meddata (Name, Quantity, Price, Expiry) VALUES (%s, %s, %s, %s)"
@@ -155,7 +173,11 @@ def create_medicine():
         
         end = time.perf_counter()
         log_operation("List", "POP", start, end)
-        
+            except Exception as e:
+
+        messagebox.showerror("Database Error", str(e))
+
+
 # LinkedList definition-----------------------------------------------------------------------------------------------------------------------------------------------
 class MedicineNode:
     def __init__(self, name, quantity, price, expiry):
@@ -165,7 +187,10 @@ class MedicineNode:
         self.expiry = expiry
         self.next = None
 
+
 class MedicineLinkedList:
+    global conn2
+    conn2 = connect_db()
     def __init__(self):
         self.head = None
 
@@ -206,9 +231,12 @@ class MedicineLinkedList:
         conn2.commit()
         cursor.close()
 
+
 # Initialize medicine list
 medicine_list = MedicineLinkedList()
 medicine_list.load_from_database()
+
+
 
 #Update method-------------------------------------------------------------------------------------------------------------------------------------------------
 def update_medicine(entries, product_table):
@@ -255,9 +283,10 @@ def update_medicine(entries, product_table):
     for entry in entries.values():
         entry.delete(0, "end")
 
+
 #Stacks definition-----------------------------------------------------------------------------------------------------------------------------------------------
 class StackManager:
-    def _init_(self):
+    def __init__(self):
         self.stack = []
 
     def push(self, item):
@@ -274,7 +303,10 @@ class StackManager:
     def is_empty(self):
         return len(self.stack) == 0
 
+
 delete_stack = StackManager()
+
+
 #Delete method---------------------------------------------------------------------------------------------------------------------------------------------------------
 def delete_medicine():
 
@@ -285,10 +317,14 @@ def delete_medicine():
     try:
         conn = connect_db()
         cursor= conn.cursor()
-        cursor.execute("SELECT * FROM meddata WHERE Name = %s", (name,))
+               cursor.execute("SELECT * FROM meddata WHERE Name = %s", (name,))
         record = cursor.fetchone()
 
-        
+        if not record:
+            messagebox.showerror("Not Found", f"No medicine found with name '{name}'.")
+            delete_entry.delete(0, tk.END)
+            return
+
         delete_stack.push(record)
         cursor.execute("DELETE FROM meddata WHERE Name = %s", (name,))
         conn.commit()
@@ -314,6 +350,8 @@ def delete_medicine():
     except Exception as e:
         messagebox.showerror("Error", str(e))
         reset_fields()
+
+
 #Function to undo -------------------------------------------------------------------------------------------------------------------------------
 def undo_delete():
     if delete_stack.is_empty():
@@ -336,9 +374,10 @@ def undo_delete():
     except Exception as e:
         messagebox.showerror("Undo Error", str(e))
 
+
 #Dictionary definition----------------------------------------------------------------------------------------------------------------------------------------
 class DictManager:
-    def _init_(self):
+    def __init__(self):
         self.records = {}
 
     def add(self, key, value):
@@ -350,6 +389,10 @@ class DictManager:
     def get_all(self):
         return self.records
 read_dict = DictManager()
+
+
+
+
 #Search method----------------------------------------------------------------------------------------------------------------------------------------------------------------
 def search_medicine():
     query = search_entry.get().strip().lower()
@@ -446,7 +489,7 @@ insertButton = tk.Button(formFrame, text="Insert Data", font=("Calibri", 12),
 insertButton.grid(row=0, column=4, pady=10, padx=50)
 
 updateButton = tk.Button(formFrame, text="Update Data", font=("Calibri", 12),
-                         bg="white", fg="black", width=15, command=update_medicine)
+                         bg="white", fg="black", width=15, command=lambda: update_medicine(entries, product_table))
 updateButton.grid(row=1, column=4, pady=10, padx=50)
 # Spane frame------------------------------------------------------------------------------------------------------------
 spane = tk.Frame(pane)
