@@ -8,6 +8,17 @@ def log_operation(structure, operation, start, end):
     duration = end - start
     print(f"[{structure}] {operation} took {duration:.6f} seconds")
 
+class ListManager:
+    def _init_(self):
+        self.data = []
+
+    def insert(self, item):
+        self.data.append(item)
+
+    def get_all(self):
+        return self.data
+
+
 # Linked list classes
 class MedicineNode:
     def __init__(self, name, quantity, price, expiry):
