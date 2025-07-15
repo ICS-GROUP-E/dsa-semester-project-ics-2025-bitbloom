@@ -1,5 +1,5 @@
 class ListManager:
-    def _init_(self):
+    def __init__(self):
         self.data = []
 
     def insert(self, item):
